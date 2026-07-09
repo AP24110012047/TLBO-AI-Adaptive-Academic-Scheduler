@@ -75,10 +75,16 @@ def main():
 
     print("\nCONSTRAINT REPORT")
     print("=" * 50)
-    print("SUBJECT VIOLATIONS :", subject_violations)
-    print("LAB VIOLATIONS     :", lab_v)
-    print("FACULTY CLASHES    :", faculty_v)
 
+    print("\nHARD CONSTRAINTS")
+    print("-" * 50)
+    print("Faculty Clashes       :", faculty_v)
+    print("Laboratory Violations :", lab_v)
+
+    print("\nSOFT CONSTRAINTS")
+    print("-" * 50)
+    print("Subject Frequency Violations :", subject_violations)
+    
     fitness = calculate_fitness(
     timetable,
     subjects,
