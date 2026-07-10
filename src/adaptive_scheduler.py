@@ -16,7 +16,8 @@ def find_subjects_by_faculty(
 
 def find_affected_slots(
         timetable,
-        faculty_subjects
+        faculty_subjects,
+        absent_day
 ):
 
     affected_slots = []
@@ -24,6 +25,9 @@ def find_affected_slots(
     for class_id, schedule in timetable.items():
 
         for day, periods in schedule.items():
+
+            if day != absent_day:
+                continue
 
             for period_no, subject in enumerate(periods):
 

@@ -84,7 +84,7 @@ def main():
     print("\nSOFT CONSTRAINTS")
     print("-" * 50)
     print("Subject Frequency Violations :", subject_violations)
-    
+
     fitness = calculate_fitness(
     timetable,
     subjects,
@@ -165,13 +165,41 @@ def main():
         subject_faculty_map,
         calculate_fitness
     )
-
     print("\nAFTER LEARNER PHASE")
     print("=" * 50)
     print("Final Fitness Scores :", final_scores)
     print("Best Fitness         :", min(final_scores))
 
-    print("Population Size :", len(population))
+# -------------------------------
+# MUTATION PHASE
+# -------------------------------
+
+    mutation_population = mutation_phase(
+        final_population,
+        mutation_rate=0.2
+    )
+
+    mutation_population = teacher_phase_selection(
+        final_population,
+        mutation_population,
+        subjects,
+        subject_faculty_map,
+        calculate_fitness
+    )
+
+    mutation_scores = evaluate_population(
+        mutation_population,
+        subjects,
+        subject_faculty_map,
+        calculate_fitness
+    )
+
+    print("\nAFTER MUTATION PHASE") 
+    print("=" * 50)
+    print("Mutation Fitness Scores :", mutation_scores)
+    print("Best Fitness            :", min(mutation_scores))
+
+    print("\nPopulation Size :", len(population))
     print("Fitness Scores  :", fitness_scores)
     print("Best Fitness    :", best_fitness)
 
@@ -192,27 +220,65 @@ def main():
 
     print("\nFitness History")
     print(history)
+
+    final_scores = evaluate_population(
+        final_population,
+        subjects,
+        subject_faculty_map,
+        calculate_fitness
+    )
+
+    best_index = final_scores.index(
+        min(final_scores)
+    )
+
+    best_timetable = final_population[
+        best_index
+    ]
+
+    print("\n")
+    print("=" * 50)
+    print("OPTIMIZED TIMETABLE")
+    print("=" * 50)
+
+    display_timetable(
+        best_timetable
+    )
+
     display_attendance_data()
     print("\nTRAINING MODEL...")
     model = train_attendance_model()
     print("MODEL TRAINED")
 
-    prediction = predict_attendance(
-        model,
-        "F3",
-        "Tuesday"
-    )
+    days = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+    ]
+
+    absent_days = []
 
     print("\nATTENDANCE PREDICTION")
     print("=" * 50)
 
-    if prediction == 1:
+    for day in days:
 
-        print("F3 predicted PRESENT")
+        prediction = predict_attendance(
+            model,
+            "F3",
+            day
+        )
 
-    else:
+        if prediction == 1:
 
-        print("F3 predicted ABSENT")
+            print(f"F3 predicted PRESENT on {day}")
+
+        else:
+
+            print(f"F3 predicted ABSENT on {day}")
+            absent_days.append(day)
 
     faculty_subjects = find_subjects_by_faculty(
         subjects,
@@ -223,21 +289,30 @@ def main():
     print("=" * 50)
     print(faculty_subjects)
 
-    affected_slots = find_affected_slots(
-        timetable,
-        faculty_subjects
-    )
+    all_affected_slots = []
+
+    for day in absent_days:
+
+        affected_slots = find_affected_slots(
+            best_timetable,
+            faculty_subjects,
+            day
+        )
+
+        all_affected_slots.extend(
+            affected_slots
+        )
 
     print("\nAFFECTED SLOTS")
     print("=" * 50)
 
-    for slot in affected_slots:
+    for slot in all_affected_slots:
 
         print(slot)
 
     adapted_timetable = reschedule_affected_slots(
-        timetable,
-        affected_slots
+        best_timetable,
+        all_affected_slots
     )
 
     print("\nADAPTIVE RESCHEDULING COMPLETED")
@@ -245,6 +320,15 @@ def main():
 
     print(
         "Affected slots replaced with FREE periods"
+    )
+
+    print("\n")
+    print("=" * 50)
+    print("UPDATED TIMETABLE")
+    print("=" * 50)
+
+    display_timetable(
+        adapted_timetable
     )
 
 if __name__ == "__main__":
